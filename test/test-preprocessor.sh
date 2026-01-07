@@ -36,7 +36,7 @@ function print_check () {
     echo " - check ${1} -> ${2}"
 }
 
-function print_preprocess () {
+function print_success () {
     echo -e -n "${TOTAL} ${RESULT} ${FILE}.c${NC}"
     PRINT="${PACKAGE_NAME}: ${RETURN}"
     print_check "return" "[${PRINT}]"
@@ -51,6 +51,63 @@ function print_error () {
     echo -e -n "${TOTAL} ${RESULT} ${FILE}.c${NC}"
     PRINT=$(echo "${PACKAGE_NAME}:"; echo "${STDOUT}")
     print_check "error" "[${PRINT}]"
+}
+
+function check_success () {
+    let TOTAL+=1
+
+    STDOUT=""
+    if [ ${RETURN} -ne 0 ]; then
+        RESULT="${LIGHT_RED}[n]"
+    else
+        STDOUT=$(${FILE} ${@} 2>&1)
+        RETURN=${?}
+        rm ${FILE}
+
+        if [ ${RETURN} -eq ${CHECK_VAL} ]; then
+            if [[ "${STDOUT}" == "${CHECK_STR}" ]]; then
+                RESULT="${LIGHT_GREEN}[y]"
+                let PASS+=1
+            else
+                RESULT="${LIGHT_RED}[n]"
+            fi
+        else
+            RESULT="${LIGHT_RED}[n]"
+        fi
+    fi
+
+    print_success
+}
+
+function check_hallo_welt () {
+    cd ${TEST_SRC}/hallo_welt
+    FILE=$(file ${PWD}/haupt.c)
+
+    CHECK_STR="Hallo Welt!"
+    for i in $(seq 1 2); do
+        ${PACKAGE_NAME} -E -Ibibliothek/ ${FILE}.c > /dev/null 2>&1
+        RETURN=${?}
+        if [ ${i} -eq 1 ]; then
+            CHECK_VAL=0; check_success
+        else
+            CHECK_VAL=42; check_success 42
+        fi
+
+        ${PACKAGE_NAME} -E -DProgrammierschnittstelle \
+            -DGanz=int -DZeichen=char -Dwenn=if -Dzuruck=return \
+            -Ibibliothek/ ${FILE}.c > /dev/null 2>&1
+        RETURN=${?}
+        if [ ${i} -eq 1 ]; then
+            CHECK_VAL=0; check_success
+        else
+            CHECK_VAL=42; check_success 42
+        fi
+    done
+}
+
+function check_macros_with_cpp () {
+    TEST_SRC="${TEST_DIR}/macros_with_cpp"
+    check_hallo_welt
 }
 
 function header_dir () {
@@ -153,7 +210,7 @@ function check_preprocess () {
         fi
     fi
 
-    print_preprocess
+    print_success
 }
 
 function check_error () {
@@ -206,6 +263,7 @@ PASS=0
 TOTAL=0
 RETURN=0
 check_test ${TEST_SRC}/main.c
+check_macros_with_cpp
 total
 
 exit ${RETURN}
