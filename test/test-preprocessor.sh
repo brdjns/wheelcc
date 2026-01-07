@@ -110,7 +110,7 @@ function check_macros_with_cpp () {
     check_hallo_welt
 }
 
-function header_dir () {
+function get_header_dir () {
     HEADER_DIR=""
     for i in $(seq 1 ${1}); do
         HEADER_DIR="${HEADER_DIR}${i}/"
@@ -119,151 +119,210 @@ function header_dir () {
     echo "${HEADER_DIR}"
 }
 
-function make_test () {
+function check_includes () {
+    N=${1}
+    for i in $(seq 1 2); do
+        let TOTAL+=1
+
+        if [ ${i} -eq 1 ]; then
+            ${PACKAGE_NAME} -I${TEST_SRC} ${FILE}.c > /dev/null 2>&1
+            RETURN=${?}
+        else
+            ${PACKAGE_NAME} -E -DWITH_FLAG_E -I${TEST_SRC} ${FILE}.c > /dev/null 2>&1
+            RETURN=${?}
+        fi
+        STDOUT=""
+        if [ ${RETURN} -ne 0 ]; then
+            RESULT="${LIGHT_RED}[n]"
+        else
+            STDOUT=$(${FILE})
+            RETURN=${?}
+            rm ${FILE}
+
+            diff -sq <(echo "${STDOUT}") <(
+                for i in $(seq 1 $((${N}+1))); do
+                    echo "Hello ${i}!"
+                done
+            ) | grep -q "identical"
+            if [ ${?} -eq 0 ]; then
+                if [ ${RETURN} -eq $((${N}+1)) ]; then
+                    RESULT="${LIGHT_GREEN}[y]"
+                    let PASS+=1
+                else
+                    RESULT="${LIGHT_RED}[n]"
+                fi
+            else
+                RESULT="${LIGHT_RED}[n]"
+            fi
+        fi
+
+        print_success
+    done
+}
+
+function check_error () {
+    ERR=${1}
+    OUT_FILE="${TEST_SRC}/$(get_header_dir ${ERR})test-header_${ERR}.h"
+    echo "int e1 = {0, 1, 2};" >> ${OUT_FILE}
+    for i in $(seq 1 2); do
+        let TOTAL+=1
+
+        if [ -f "${FILE}" ]; then
+            rm ${FILE}
+        fi
+        if [ -f "${FILE}.i" ]; then
+            rm ${FILE}.i
+        fi
+
+        if [ ${i} -eq 1 ]; then
+            STDOUT=$(${PACKAGE_NAME} -I${TEST_SRC} ${FILE}.c 2>&1)
+            RETURN=${?}
+        else
+            STDOUT=$(${PACKAGE_NAME} -E -DWITH_FLAG_E -I${TEST_SRC} ${FILE}.c 2>&1)
+            RETURN=${?}
+        fi
+        if [ ${RETURN} -eq 0 ]; then
+            rm ${FILE}
+            RESULT="${LIGHT_RED}[n]"
+        else
+            if [ ${i} -eq 1 ]; then
+                diff -sq <(echo "${STDOUT}") <(
+                    echo -e -n "\033[1m${TEST_SRC}/"
+                    for j in $(seq 1 $((${ERR}))); do
+                        echo -n "${j}/"
+                    done
+                    echo -e "test-header_${ERR}.h:9:11:${NC}"
+                    echo -e "\033[0;31merror:${NC} (no. 547) cannot initialize scalar type \033[1m‘int’${NC} with compound initializer"
+                    echo -e "at line 9: \033[0;31m          v${NC}"
+                    echo -e "         | \033[1mint e1 = {0, 1, 2};${NC}"
+                    echo -e "${PACKAGE_NAME}: \033[0;31merror:${NC} compilation failed, see \033[1m‘--help’${NC}"
+                ) | grep -q "identical"
+                if [ ${?} -eq 0 ]; then
+                    RESULT="${LIGHT_GREEN}[y]"
+                    let PASS+=1
+                else
+                    RESULT="${LIGHT_RED}[n]"
+                fi
+            else
+                if [ -f "${FILE}.i" ]; then
+                    rm ${FILE}.i
+                    RESULT="${LIGHT_GREEN}[y]"
+                    let PASS+=1
+                else
+                    RETURN=1
+                    STDOUT="File ${FILE}.i not found"
+                    RESULT="${LIGHT_RED}[n]"
+                fi
+            fi
+        fi
+
+        print_error
+    done
+}
+
+function check_preprocessor () {
+    cd ${TEST_DIR}
+    TEST_SRC="${TEST_DIR}/preprocessor"
+    FILE=$(file ${TEST_SRC}/main.c)
+
+    N=63
+    ERR=27
+    DEF_WITH_CPP="WITH_FLAG_E"
+
     if [ -d "${TEST_SRC}" ]; then
         rm -r ${TEST_SRC}
     fi
     mkdir -p ${TEST_SRC}
 
-    for i in $(seq 1 $((N-1))); do
-        echo "int x${i} = 1;" > ${TEST_SRC}/$(header_dir ${i})test-header_${i}.h
-        echo "// a single-line comment ${i}" >> ${TEST_SRC}/$(header_dir ${i})test-header_${i}.h
-        echo "#pragma pragma${i}" >> ${TEST_SRC}/$(header_dir ${i})test-header_${i}.h
-        echo "#include \"$(header_dir $((${N}-${i})))test-header_$((${N}-${i})).h\"" >> ${TEST_SRC}/$(header_dir ${i})test-header_${i}.h
-        echo "/* a multi-line" >> ${TEST_SRC}/$(header_dir ${i})test-header_${i}.h
-        echo "comment ${i}" >> ${TEST_SRC}/$(header_dir ${i})test-header_${i}.h
-        echo "   */" >> ${TEST_SRC}/$(header_dir ${i})test-header_${i}.h
-        echo "#define MACRO_${i} ${i}" >> ${TEST_SRC}/$(header_dir ${i})test-header_${i}.h
-        echo "char* s${i} = \"Hello ${i}!\";" >> ${TEST_SRC}/$(header_dir ${i})test-header_${i}.h
-    done
-
-    echo "int x${N} = 1;" > ${TEST_SRC}/test-header_${N}.h
-    echo "// a single-line comment ${N}" >> ${TEST_SRC}/test-header_${N}.h
-    echo "#pragma pragma${N}" >> ${TEST_SRC}/test-header_${N}.h
-    echo "#include \"test-header_0.h\"" >> ${TEST_SRC}/test-header_${N}.h
-    echo "/* a multi-line" >> ${TEST_SRC}/test-header_${N}.h
-    echo "comment ${N}" >> ${TEST_SRC}/test-header_${N}.h
-    echo "   */" >> ${TEST_SRC}/test-header_${N}.h
-    echo "#define MACRO_${N} ${N}" >> ${TEST_SRC}/test-header_${N}.h
-    echo "char* s${N} = \"Hello ${N}!\";" >> ${TEST_SRC}/test-header_${N}.h
-
     echo -n "" > ${TEST_SRC}/test-header_0.h
 
-    echo "int puts(char* s);" > ${FILE}.c
-    echo "" >> ${FILE}.c
-    echo "int x$((${N}+1)) = 1;" >> ${FILE}.c
-    echo "// a single-line comment $((${N}+1))" >> ${FILE}.c
-    echo "#pragma pragma$((${N}+1))" >> ${FILE}.c
-    echo "" >> ${FILE}.c
+    OUT_FILE="${TEST_SRC}/test-define_0.h"
+
+    echo "#pragma once" > ${OUT_FILE}
+    echo "#define DEF_STR(X) s##X = \"Hello \" #X \"!\"" >> ${OUT_FILE}
+
     for i in $(seq 1 $((N-1))); do
-        echo "#include \"$(header_dir ${i})test-header_${i}.h\"" >> ${FILE}.c
+        OUT_FILE="${TEST_SRC}/$(get_header_dir ${i})test-header_${i}.h"
+        echo "#pragma once" > ${OUT_FILE}
+        echo "int x${i} = 1;" >> ${OUT_FILE}
+        echo "// a single-line comment ${i}" >> ${OUT_FILE}
+        echo "#include \"$(get_header_dir $((${N}-${i})))test-header_$((${N}-${i})).h\"" >> ${OUT_FILE}
+        echo "/* a multi-line" >> ${OUT_FILE}
+        echo "  comment ${i}" >> ${OUT_FILE}
+        echo "  */" >> ${OUT_FILE}
+        echo "char* s${i} = 0;" >> ${OUT_FILE}
+
+        OUT_FILE="${TEST_SRC}/$(get_header_dir ${i})test-define_${i}.h"
+        echo "#pragma once" > ${OUT_FILE}
+        echo "#define STR_${i} DEF_STR(${i})" >> ${OUT_FILE}
+        echo "#ifndef ${DEF_WITH_CPP}" >> ${OUT_FILE}
+        echo "char* STR_${i} = \"Hello ${i}!\";" >> ${OUT_FILE}
+        echo "#endif" >> ${OUT_FILE}
     done
-    echo "#include \"test-header_${N}.h\"" >> ${FILE}.c
-    echo "" >> ${FILE}.c
-    echo "/* a multi-line" >> ${FILE}.c
-    echo "comment $((${N}+1))" >> ${FILE}.c
-    echo "   */" >> ${FILE}.c
-    echo "#define MACRO_$((${N}+1)) $((${N}+1))" >> ${FILE}.c
-    echo "char* s$((${N}+1)) = \"Hello $((${N}+1))!\";" >> ${FILE}.c
-    echo "" >> ${FILE}.c
-    echo "int main(void) {" >> ${FILE}.c
+
+    OUT_FILE="${TEST_SRC}/test-header_${N}.h"
+    echo "#pragma once" > ${OUT_FILE}
+    echo "int x${N} = 1;" >> ${OUT_FILE}
+    echo "// a single-line comment ${N}" >> ${OUT_FILE}
+    echo "#include \"test-header_0.h\"" >> ${OUT_FILE}
+    echo "/* a multi-line" >> ${OUT_FILE}
+    echo "  comment ${N}" >> ${OUT_FILE}
+    echo "  */" >> ${OUT_FILE}
+    echo "char* s${N} = 0;" >> ${OUT_FILE}
+
+    OUT_FILE="${TEST_SRC}/test-define_${N}.h"
+    echo "#pragma once" > ${OUT_FILE}
+    echo "#include \"test-define_0.h\"" >> ${OUT_FILE}
+    echo "#define STR_${N} DEF_STR(${N})" >> ${OUT_FILE}
+    echo "#ifndef ${DEF_WITH_CPP}" >> ${OUT_FILE}
+    echo "char* STR_${N} = \"Hello ${N}!\";" >> ${OUT_FILE}
+    echo "#endif" >> ${OUT_FILE}
+
+    OUT_FILE="${FILE}.c"
+    echo "int puts(char* s);" > ${OUT_FILE}
+    echo "" >> ${OUT_FILE}
+    echo "int x$((${N}+1)) = 1;" >> ${OUT_FILE}
+    echo "// a single-line comment $((${N}+1))" >> ${OUT_FILE}
+    echo "" >> ${OUT_FILE}
+    echo "#define STR_$((${N}+1)) DEF_STR($((${N}+1)))" >> ${OUT_FILE}
+    echo "#ifndef ${DEF_WITH_CPP}" >> ${OUT_FILE}
+    echo "char* STR_$((${N}+1)) = \"Hello $((${N}+1))!\";" >> ${OUT_FILE}
+    echo "#endif" >> ${OUT_FILE}
+    echo "#include \"test-define_${N}.h\"" >> ${OUT_FILE}
+    for i in $(seq 1 $((N-1))); do
+        echo "#include \"$(get_header_dir ${i})test-define_${i}.h\"" >> ${OUT_FILE}
+        echo "#include \"$(get_header_dir ${i})test-header_${i}.h\"" >> ${OUT_FILE}
+    done
+    echo "#include \"test-header_${N}.h\"" >> ${OUT_FILE}
+    echo "" >> ${OUT_FILE}
+    echo "/* a multi-line" >> ${OUT_FILE}
+    echo "  comment $((${N}+1))" >> ${OUT_FILE}
+    echo "  */" >> ${OUT_FILE}
+    echo "char* s$((${N}+1)) = 0;" >> ${OUT_FILE}
+    echo "" >> ${OUT_FILE}
+    echo "int main(void) {" >> ${OUT_FILE}
     for i in $(seq 1 $((${N}+1))); do
-        echo "    puts(s${i});" >> ${FILE}.c
+        echo "    s${i} = STR_${i};" >> ${OUT_FILE}
     done
-        echo "    return 0" >> ${FILE}.c;
+    for i in $(seq ${k} $((${N}+1))); do
+        echo "    puts(s${i});" >> ${OUT_FILE}
+    done
+        echo "    return 0" >> ${OUT_FILE};
     for i in $(seq 1 $((${N}+1))); do
-        echo "    + x${i}" >> ${FILE}.c
+        echo "    + x${i}" >> ${OUT_FILE}
     done
-    echo "    ;" >> ${FILE}.c
-    echo "}" >> ${FILE}.c
+    echo "    ;" >> ${OUT_FILE}
+    echo "}" >> ${OUT_FILE}
+
+    check_includes ${N}
+    check_error ${ERR}
 }
-
-function check_preprocess () {
-    let TOTAL+=1
-
-    make_test
-
-    ${PACKAGE_NAME} ${FILE}.c > /dev/null 2>&1
-    RETURN=${?}
-    STDOUT=""
-    if [ ${RETURN} -ne 0 ]; then
-        RESULT="${LIGHT_RED}[n]"
-    else
-        STDOUT=$(${FILE})
-        RETURN=${?}
-        rm ${FILE}
-
-        diff -sq <(echo "${STDOUT}") <(
-            for i in $(seq 1 $((${N}+1))); do
-                echo "Hello ${i}!"
-            done
-        ) | grep -q "identical"
-        if [ ${?} -eq 0 ]; then
-            if [ ${RETURN} -eq $((${N}+1)) ]; then
-                RESULT="${LIGHT_GREEN}[y]"
-                let PASS+=1
-            else
-                RESULT="${LIGHT_RED}[n]"
-            fi
-        else
-            RESULT="${LIGHT_RED}[n]"
-        fi
-    fi
-
-    print_success
-}
-
-function check_error () {
-    let TOTAL+=1
-
-    echo "int e1 = {0, 1, 2};" >> ${TEST_SRC}/$(header_dir ${ERR})test-header_${ERR}.h
-
-    if [ -f "${FILE}" ]; then
-        rm ${FILE}
-    fi
-
-    STDOUT=$(${PACKAGE_NAME} ${FILE}.c 2>&1)
-    RETURN=${?}
-    if [ ${RETURN} -eq 0 ]; then
-        rm ${FILE}
-        RESULT="${LIGHT_RED}[n]"
-    else
-        diff -sq <(echo "${STDOUT}") <(
-            echo -e -n "\033[1m${TEST_SRC}/"
-            for i in $(seq 1 $((${ERR}))); do
-                echo -n "${i}/"
-            done
-            echo -e "test-header_${ERR}.h:10:11:${NC}"
-            echo -e "\033[0;31merror:${NC} (no. 547) cannot initialize scalar type \033[1m‘int’${NC} with compound initializer"
-            echo -e "at line 10: \033[0;31m          v${NC}"
-            echo -e "          | \033[1mint e1 = {0, 1, 2};${NC}"
-            echo -e "${PACKAGE_NAME}: \033[0;31merror:${NC} compilation failed, see \033[1m‘--help’${NC}"
-        ) | grep -q "identical"
-        if [ ${?} -eq 0 ]; then
-            RESULT="${LIGHT_GREEN}[y]"
-            let PASS+=1
-        else
-            RESULT="${LIGHT_RED}[n]"
-        fi
-    fi
-
-    print_error
-}
-
-function check_test () {
-    FILE=$(file ${1})
-    check_preprocess
-    check_error
-}
-
-N=63
-ERR=27
 
 PASS=0
 TOTAL=0
 RETURN=0
-check_test ${TEST_SRC}/main.c
 check_macros_with_cpp
+check_preprocessor
 total
 
 exit ${RETURN}
