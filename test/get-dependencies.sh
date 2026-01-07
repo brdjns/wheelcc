@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Check for MacOS first, as it supports only bash <= 3.2
 if [[ "$(uname -s)" = "Darwin"* ]]; then

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 PACKAGE_DIR="$(dirname $(readlink -f ${0}))"
 cd $(dirname ${PACKAGE_DIR})/build/

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 CC="clang -arch x86_64 -pedantic-errors -std=c17"
 

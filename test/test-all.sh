@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 RESULTS_DIR="${PWD}/test_results/"
 mkdir -p ${RESULTS_DIR}

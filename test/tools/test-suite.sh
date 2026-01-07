@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 ROOT="${PWD}/../.."
 TEST_SUITE="${ROOT}/../writing-a-c-compiler-tests"
