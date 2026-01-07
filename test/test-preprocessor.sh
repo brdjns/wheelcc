@@ -105,9 +105,79 @@ function check_hallo_welt () {
     done
 }
 
+function check_compiler_tests () {
+    COUNT_I=0; COUNT_S=0; CHECK_VAL=0
+    FILES="$(find $(readlink -f ${TEST_DIR}/../compiler) -name "*.c" -type f |\
+         grep --invert-match invalid | sort --uniq)"
+    for FILE in ${FILES}; do
+        FILE=$(file ${FILE})
+        if [ -f "${FILE}.i" ]; then
+            rm "${FILE}.i"
+        fi
+        if [ -f "${FILE}.s" ]; then
+            rm "${FILE}.s"
+        fi
+        ${PACKAGE_NAME} -E -S ${FILE}.c > /dev/null 2>&1
+        RETURN=${?}
+        if [ ${RETURN} -ne 0 ]; then
+            RETURN=1
+        fi
+        if [ -f "${FILE}.i" ]; then
+            let COUNT_I+=1
+            rm "${FILE}.i"
+        else
+            RETURN=2
+        fi
+        if [ -f "${FILE}.s" ]; then
+            let COUNT_S+=1
+            rm "${FILE}.s"
+        else
+            RETURN=3
+        fi
+        if [ ${RETURN} -eq 0 ]; then
+            let CHECK_VAL+=1
+        fi
+    done
+
+    STDOUT=""
+    RETURN=$(echo "${FILES}" | wc -l | tr -d ' ')
+    CHECK_STR="${RETURN}/${RETURN}"
+
+    OUT_FILE="${TEST_SRC}/check_i.c"
+    echo "int puts(char* s);" > ${OUT_FILE}
+    echo "int main(void) {" >> ${OUT_FILE}
+    echo "    puts(\"${COUNT_I}/${RETURN}\");" >> ${OUT_FILE}
+    echo "    if (${COUNT_I} == ${RETURN} && ${CHECK_VAL} == ${RETURN}) {" >> ${OUT_FILE}
+    echo "        return 0;" >> ${OUT_FILE}
+    echo "    }" >> ${OUT_FILE}
+    echo "    return 1;" >> ${OUT_FILE}
+    echo "}" >> ${OUT_FILE}
+
+    OUT_FILE="${TEST_SRC}/check_s.c"
+    echo "int puts(char* s);" > ${OUT_FILE}
+    echo "int main(void) {" >> ${OUT_FILE}
+    echo "    puts(\"${COUNT_S}/${RETURN}\");" >> ${OUT_FILE}
+    echo "    if (${COUNT_S} == ${RETURN} && ${CHECK_VAL} == ${RETURN}) {" >> ${OUT_FILE}
+    echo "        return 0;" >> ${OUT_FILE}
+    echo "    }" >> ${OUT_FILE}
+    echo "    return 1;" >> ${OUT_FILE}
+    echo "}" >> ${OUT_FILE}
+
+    FILE=$(file ${TEST_SRC}/check_i.c)
+    ${PACKAGE_NAME} -E ${FILE}.c > /dev/null 2>&1
+    RETURN=${?}
+    CHECK_VAL=0; check_success
+
+    FILE=$(file ${TEST_SRC}/check_s.c)
+    ${PACKAGE_NAME} -E ${FILE}.c > /dev/null 2>&1
+    RETURN=${?}
+    CHECK_VAL=0; check_success
+}
+
 function check_macros_with_cpp () {
     TEST_SRC="${TEST_DIR}/macros_with_cpp"
     check_hallo_welt
+    check_compiler_tests
 }
 
 function get_header_dir () {
