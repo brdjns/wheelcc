@@ -571,7 +571,7 @@ function link () {
                 fi
                 if [ ! -z "${LD_LIB_64}" ]; then
                     CRT_FILES="${PACKAGE_DIR}/crt.${EXT_OUT}"
-                    if [ ${KERNEL_NAME} = "FreeBSD" ]; then
+                    if [ "${KERNEL_NAME}" = "FreeBSD" ]; then
                         CRT_FILES="${CRT_FILES} ${PACKAGE_DIR}/crtfbsd.${EXT_OUT}"
                     fi
                     verbose "Assemble (as) -> ${PACKAGE_DIR}/crt.o"
