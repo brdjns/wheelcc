@@ -35,7 +35,7 @@ if [ -d "${PACKAGE_DIR}/libc/" ]; then
         if [ ! -f "~/.bashrc" ]; then
             if [ -f "~/.zshrc" ]; then
                 RC_FILE="zshrc"
-            elif [[ "$(uname -s)" = "Darwin"* ]]; then
+            elif [[ "$(uname -s)" == "Darwin"* ]]; then
                 RC_FILE="zshrc"
             fi
         fi

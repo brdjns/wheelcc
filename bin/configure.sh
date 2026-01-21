@@ -34,7 +34,7 @@ if [ -f "${PACKAGE_DIR}/fileext.cfg" ]; then
 fi
 
 # Check for MacOS first, as it supports only bash <= 3.2
-if [[ "$(uname -s)" = "Darwin"* ]]; then
+if [[ "$(uname -s)" == "Darwin"* ]]; then
     clang --help > /dev/null 2>&1
     if [ ${?} -ne 0 ]; then
         INSTALL_CC=1

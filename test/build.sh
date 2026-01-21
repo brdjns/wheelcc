@@ -12,7 +12,7 @@ if [ "${1}" = "--cpp" ]; then
     BUILD_CPP="ON"
     export CXX=$(which g++)
 fi
-if [[ "$(uname -s)" = "Darwin"* ]]; then
+if [[ "$(uname -s)" == "Darwin"* ]]; then
     export CC=$(which clang)
     if [ "${BUILD_CPP}" = "ON" ]; then
         export CXX=$(which clang++)

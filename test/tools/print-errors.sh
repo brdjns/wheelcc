@@ -37,7 +37,7 @@ elif [ "${1}" = "--line" ]; then
     ARG=${2}
 fi
 
-if [[ "$(uname -s)" = "Darwin"* ]]; then
+if [[ "$(uname -s)" == "Darwin"* ]]; then
     MATCH_PATTERN=""
 fi
 

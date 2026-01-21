@@ -3,7 +3,7 @@
 PACKAGE_DIR="$(dirname $(readlink -f ${0}))"
 cd $(dirname ${PACKAGE_DIR})/build/
 
-if [[ "${1}" = "--cmake"* ]]; then
+if [[ "${1}" == "--cmake"* ]]; then
     ./cmake_build.sh ${1}
     if [ ${?} -ne 0 ]; then
         echo -e "\033[0;31merror:\033[0m build failed" 1>&2

@@ -21,7 +21,7 @@ if [ -f "${PACKAGE_DIR}/pkgpath.cfg" ]; then
     TEST_DIR="$(cat ${PACKAGE_DIR}/pkgpath.cfg)/test/tests/compiler"
 fi
 
-if [[ "$(uname -s)" = "Darwin"* ]]; then
+if [[ "$(uname -s)" == "Darwin"* ]]; then
     echo "${0} not supported on MacOS (missing valgrind)"
     exit 0
 fi

@@ -5,7 +5,7 @@ PACKAGE_DIR="$(dirname ${PACKAGE_TEST})/bin"
 PACKAGE_NAME="$(cat ${PACKAGE_DIR}/pkgname.cfg)"
 CC="gcc"
 DIST="linux"
-if [[ "$(uname -s)" = "Darwin"* ]]; then
+if [[ "$(uname -s)" == "Darwin"* ]]; then
     CC="clang -arch x86_64"
     DIST="osx"
 

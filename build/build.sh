@@ -3,7 +3,7 @@
 PACKAGE_NAME="$(cat ../bin/pkgname.cfg)"
 CC="gcc"
 CXX="g++"
-if [[ "$(uname -s)" = "Darwin"* ]]; then
+if [[ "$(uname -s)" == "Darwin"* ]]; then
     CC="clang"
     CXX="clang++"
 fi

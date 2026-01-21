@@ -5,7 +5,7 @@ PACKAGE_NAME="$(cat ${PACKAGE_DIR}/pkgname.cfg)"
 CC="gcc"
 AS_FLAGS="--64"
 LD_LIB_64="/lib64/ld-linux-x86-64.so.2"
-if [[ "$(uname -s)" = "Darwin"* ]]; then
+if [[ "$(uname -s)" == "Darwin"* ]]; then
     CC="clang -arch x86_64"
     AS_FLAGS="-arch x86_64"
     LD_LIB_64=""
