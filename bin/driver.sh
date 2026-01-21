@@ -10,10 +10,13 @@ if [[ "${KERNEL_NAME}" == "Darwin"* ]]; then
     CC="clang -arch x86_64"
     AS_FLAGS="-arch x86_64"
     LD_LIB_64=""
+    KERNEL_NAME="Darwin"
 elif [[ "${KERNEL_NAME}" == "FreeBSD"* ]]; then
     CC="clang"
     LD_LIB_64="/libexec/ld-elf.so.1"
     KERNEL_NAME="FreeBSD"
+else
+    KERNEL_NAME="Linux"
 fi
 LIBC_DIR="${PACKAGE_DIR}/libc/"
 PP="${CC}"
