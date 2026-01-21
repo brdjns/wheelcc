@@ -1,14 +1,19 @@
 #!/usr/bin/env bash
 
+KERNEL_NAME="$(uname -s)"
 PACKAGE_DIR="$(dirname $(readlink -f ${0}))"
 PACKAGE_NAME="$(cat ${PACKAGE_DIR}/pkgname.cfg)"
 CC="gcc"
 AS_FLAGS="--64"
 LD_LIB_64="/lib64/ld-linux-x86-64.so.2"
-if [[ "$(uname -s)" == "Darwin"* ]]; then
+if [[ "${KERNEL_NAME}" == "Darwin"* ]]; then
     CC="clang -arch x86_64"
     AS_FLAGS="-arch x86_64"
     LD_LIB_64=""
+elif [[ "${KERNEL_NAME}" == "FreeBSD"* ]]; then
+    CC="clang"
+    LD_LIB_64="/libexec/ld-elf.so.1"
+    KERNEL_NAME="FreeBSD"
 fi
 LIBC_DIR="${PACKAGE_DIR}/libc/"
 PP="${CC}"
@@ -491,6 +496,9 @@ function add_linkdirs () {
     if [ -d "${LIBC_DIR}" ]; then
         LINK_DIRS="${LINK_DIRS} -L${LIBC_DIR}"
     fi
+    if [ "${KERNEL_NAME}" = "FreeBSD" ]; then
+        LINK_DIRS="${LINK_DIRS} -L/lib/ -L/usr/lib/"
+    fi
     return 0
 }
 
@@ -562,8 +570,12 @@ function link () {
                     LD_LIB_64=""
                 fi
                 if [ ! -z "${LD_LIB_64}" ]; then
+                    CRT_FILES="${PACKAGE_DIR}/crt.${EXT_OUT}"
+                    if [ ${KERNEL_NAME} = "FreeBSD" ]; then
+                        CRT_FILES="${CRT_FILES} ${PACKAGE_DIR}/crtfbsd.${EXT_OUT}"
+                    fi
                     verbose "Assemble (as) -> ${PACKAGE_DIR}/crt.o"
-                    as ${AS_FLAGS} ${PACKAGE_DIR}/crt.${EXT_OUT} -o ${PACKAGE_DIR}/crt.o
+                    as ${AS_FLAGS} ${CRT_FILES} -o ${PACKAGE_DIR}/crt.o
                     if [ ${?} -ne 0 ]; then
                         raise_error "assembling failed"
                     fi
