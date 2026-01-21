@@ -35,11 +35,19 @@ if [ -d "${PACKAGE_DIR}/libc/" ]; then
         if [ ! -f "~/.bashrc" ]; then
             if [ -f "~/.zshrc" ]; then
                 RC_FILE="zshrc"
+            elif [ -f "~/.cshrc" ]; then
+                RC_FILE="cshrc"
             elif [[ "$(uname -s)" == "Darwin"* ]]; then
                 RC_FILE="zshrc"
+            elif [[ "$(uname -s)" == "FreeBSD"* ]]; then
+                RC_FILE="cshrc"
             fi
         fi
-        sudo echo 'export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:'"${PACKAGE_DIR}/libc/\"" >> ~/.${RC_FILE}
+        if [ "${RC_FILE}" = "cshrc" ]; then
+            sudo echo 'setenv LD_LIBRARY_PATH "${LD_LIBRARY_PATH}:'"${PACKAGE_DIR}/libc/\"" >> ~/.cshrc
+        else
+            sudo echo 'export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:'"${PACKAGE_DIR}/libc/\"" >> ~/.${RC_FILE}
+        fi
         if [ ${?} -ne 0 ]; then
             echo -e "\033[0;31merror:\033[0m libc installation failed" 1>&2
             exit 1
