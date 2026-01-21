@@ -6,9 +6,12 @@ CXX="g++"
 if [[ "$(uname -s)" == "Darwin"* ]]; then
     CC="clang"
     CXX="clang++"
+elif [[ "$(uname -s)" == "FreeBSD"* ]]; then
+    CC="clang"
+    CXX="clang++"
 fi
 
-./build_preset.sh
+./build_preset.sh ${CC}
 if [ ${?} -ne 0 ]; then exit 1; fi
 
 BUILD_RELEASE=0
