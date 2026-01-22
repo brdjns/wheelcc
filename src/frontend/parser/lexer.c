@@ -844,7 +844,7 @@ error_t lex_c_code(const string_t filename, vector_t(const char*) * includedirs,
         ctx.includename_set = set_new();
         ctx.p_includedirs = includedirs;
         ctx.p_stdlibdirs = stdlibdirs;
-#ifndef __APPLE__
+#if defined(__GNUC__) && !defined(__clang__)
         vec_push_back(*ctx.p_stdlibdirs, "/usr/include/");
         vec_push_back(*ctx.p_stdlibdirs, "/usr/local/include/");
 #endif
