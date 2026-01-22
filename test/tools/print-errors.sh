@@ -39,6 +39,8 @@ fi
 
 if [[ "$(uname -s)" == "Darwin"* ]]; then
     MATCH_PATTERN=""
+elif [[ "$(uname -s)" == "FreeBSD"* ]]; then
+    MATCH_PATTERN=""
 fi
 
 if [ ! -z "${ARG}" ]; then
