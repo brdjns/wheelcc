@@ -8,7 +8,10 @@ DIST="linux"
 if [[ "$(uname -s)" == "Darwin"* ]]; then
     CC="clang -arch x86_64"
     DIST="osx"
-
+elif [[ "$(uname -s)" == "FreeBSD"* ]]; then
+    CC="clang"
+fi
+if [[ "${CC}" == "clang"*  ]]; then
     CLANG_MAJOR_VERSION=$(clang -dumpversion | cut -d"." -f1)
     if [ ${CLANG_MAJOR_VERSION} -lt 5 ]; then
         echo -e "${PACKAGE_NAME}: \033[0;31merror:\033[0m requires \033[clang\033[0m >= 5.0.0" 1>&2

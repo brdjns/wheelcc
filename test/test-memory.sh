@@ -115,7 +115,10 @@ function test_all () {
     done
 }
 
-DISTRO="$(cat /etc/os-release | grep -P "^NAME=" | cut -d"\"" -f2)"
+DISTRO="FreeBSD"
+if [[ "$(uname -s)" != "FreeBSD"* ]]; then
+    DISTRO="$(cat /etc/os-release | grep -P "^NAME=" | cut -d"\"" -f2)"
+fi
 case ${DISTRO} in
     "Arch Linux")
         export DEBUGINFOD_URLS="https://debuginfod.archlinux.org"
