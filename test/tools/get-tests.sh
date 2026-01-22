@@ -57,9 +57,12 @@ mv -v ${TEST_DIR}/${TEST_SRCS[12]}/valid/extra_credit/nan_incr_and_decr.c ${TEST
 mv -v ${TEST_DIR}/${TEST_SRCS[12]}/valid/libraries/double_params_and_result.c ${TEST_DIR}/${TEST_SRCS[12]}/valid/libraries/double_params_and_result__+lm.c
 mv -v ${TEST_DIR}/${TEST_SRCS[12]}/valid/libraries/double_params_and_result_client.c ${TEST_DIR}/${TEST_SRCS[12]}/valid/libraries/double_params_and_result__+lm_client.c
 mv -v ${TEST_DIR}/${TEST_SRCS[12]}/valid/special_values/negative_zero.c ${TEST_DIR}/${TEST_SRCS[12]}/valid/special_values/negative_zero__+lm.c
-mv -v ${TEST_DIR}/${TEST_SRCS[18]}/constant_folding/all_types/extra_credit/fold_nan.c ${TEST_DIR}/${TEST_SRCS[18]}/constant_folding/all_types/extra_credit/fold_nan__+lm.c 
-mv -v ${TEST_DIR}/${TEST_SRCS[18]}/constant_folding/all_types/extra_credit/return_nan.c ${TEST_DIR}/${TEST_SRCS[18]}/constant_folding/all_types/extra_credit/return_nan__+lm.c 
-mv -v ${TEST_DIR}/${TEST_SRCS[18]}/copy_propagation/all_types/extra_credit/redundant_nan_copy.c ${TEST_DIR}/${TEST_SRCS[18]}/copy_propagation/all_types/extra_credit/redundant_nan_copy__+lm.c 
+mv -v ${TEST_DIR}/${TEST_SRCS[18]}/constant_folding/all_types/extra_credit/fold_nan.c ${TEST_DIR}/${TEST_SRCS[18]}/constant_folding/all_types/extra_credit/fold_nan__+lm.c
+mv -v ${TEST_DIR}/${TEST_SRCS[18]}/constant_folding/all_types/extra_credit/return_nan.c ${TEST_DIR}/${TEST_SRCS[18]}/constant_folding/all_types/extra_credit/return_nan__+lm.c
+mv -v ${TEST_DIR}/${TEST_SRCS[18]}/copy_propagation/all_types/extra_credit/redundant_nan_copy.c ${TEST_DIR}/${TEST_SRCS[18]}/copy_propagation/all_types/extra_credit/redundant_nan_copy__+lm.c
+mv -v ${TEST_DIR}/${TEST_SRCS[18]}/whole_pipeline/all_types/fold_cast_to_double.c ${TEST_DIR}/${TEST_SRCS[18]}/whole_pipeline/all_types/fold_cast_to_double__+lm.c
+mv -v ${TEST_DIR}/${TEST_SRCS[18]}/whole_pipeline/all_types/fold_infinity.c ${TEST_DIR}/${TEST_SRCS[18]}/whole_pipeline/all_types/fold_infinity__+lm.c
+mv -v ${TEST_DIR}/${TEST_SRCS[18]}/whole_pipeline/all_types/fold_negative_zero.c ${TEST_DIR}/${TEST_SRCS[18]}/whole_pipeline/all_types/fold_negative_zero__+lm.c
 
 # Merge multiple helpers into one
 cat ${TEST_DIR}/${TEST_SRCS[19]}/helper_libs/util.c >> ${TEST_DIR}/${TEST_SRCS[19]}/helper_libs/track_arg_registers_lib.c
