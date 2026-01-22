@@ -484,13 +484,13 @@ const char* get_fatal_msg(MESSAGE_FATAL msg) {
             RET_ERRNO EM_VARG " architecture is not supported, requires " EM_CSTR("x86_64");
 #endif
         case MSG_unsupported_compiler:
-#ifdef __APPLE__
+#if defined(__APPLE__) || defined(__FreeBSD__)
             RET_ERRNO EM_VARG " compiler is not supported, requires " EM_CSTR("clang") " >= 5.0.0";
 #else
             RET_ERRNO EM_VARG " compiler is not supported, requires " EM_CSTR("gcc") " >= 8.1.0";
 #endif
         case MSG_unsupported_cc_ver:
-#ifdef __APPLE__
+#if defined(__APPLE__) || defined(__FreeBSD__)
             RET_ERRNO EM_CSTR("clang") " %i.%i.%i is not supported, requires " EM_CSTR("clang") " >= 5.0.0";
 #else
             RET_ERRNO EM_CSTR("gcc") " %i.%i.%i is not supported, requires " EM_CSTR("gcc") " >= 8.1.0";
