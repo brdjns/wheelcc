@@ -64,8 +64,22 @@ if [ "${INSTALL_Y}" = "y" ]; then
 fi
 
 if [ "${INSTALL_Y}" = "y" ]; then
-    DISTRO="$(cat /etc/os-release | grep -P "^NAME=" | cut -d"\"" -f2)"
+    DISTRO="FreeBSD"
+    if [[ "${KERNEL_NAME}" != "FreeBSD"* ]]; then
+        DISTRO="$(cat /etc/os-release | grep -P "^NAME=" | cut -d"\"" -f2)"
+    fi
     case "${DISTRO}" in
+        "FreeBSD")
+            sudo pkg update && {
+                for i in $(seq 1 ${#INSTALL_PKGS[@]}); do
+                    if [ ${INSTALL_PKGS[$((i-1))]} -ne 0 ]; then
+                        DEP="$(echo "${INSTALL_DEPS}" | cut -d" " -f${i})"
+                        sudo pkg install -y ${DEP}
+                        INSTALL_PKGS[$((i-1))]=${?}
+                    fi
+                done
+            }
+            ;;
         "Debian GNU/Linux") ;&
         "Linux Mint") ;&
         "Ubuntu")
