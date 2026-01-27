@@ -26,7 +26,7 @@ if [[ "${KERNEL_NAME}" == "Darwin"* ]]; then
 elif [[ "${KERNEL_NAME}" == "FreeBSD"* ]]; then
     CC="clang"
 fi
-if [ ${CC} = "clang" ]; then
+if [ "${CC}" = "clang" ]; then
     CXX="clang++"
     CC_VER="5.0.0"
 fi
@@ -35,7 +35,7 @@ INSTALL_CC=0
 ${CC} --help > /dev/null 2>&1
 if [ ${?} -ne 0 ]; then
     INSTALL_CC=1
-elif [ ${CC} = "clang" ]; then
+elif [ "${CC}" = "clang" ]; then
     CLANG_MAJOR_VERSION=$(clang -dumpversion | cut -d"." -f1)
     if [ ${CLANG_MAJOR_VERSION} -lt 5 ]; then
         INSTALL_CC=1

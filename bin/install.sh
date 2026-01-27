@@ -9,7 +9,7 @@ INSTALL_DIR="/usr/local/bin"
 
 echo -e -n "install \033[1m‘${PACKAGE_NAME}’\033[0m to \033[1m‘${INSTALL_DIR}/’\033[0m? [y/n]: "
 read -p "" INSTALL_Y
-if [ ! ${INSTALL_Y} = "y" ]; then
+if [ ! "${INSTALL_Y}" = "y" ]; then
     echo -e "\033[1;34mwarning:\033[0m command \033[1m‘${PACKAGE_NAME}’\033[0m was not installed, use with \033[1m‘${PACKAGE_DIR}/driver.sh’\033[0m"
     exit 0
 fi
