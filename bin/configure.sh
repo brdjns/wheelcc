@@ -18,7 +18,49 @@ if [ ! -d "${PACKAGE_DIR}/libc/" ]; then
     mkdir -p ${PACKAGE_DIR}/libc/
 fi
 
+CC="gcc"
+CXX="g++"
+CC_VER="8.1.0"
+if [[ "${KERNEL_NAME}" == "Darwin"* ]]; then
+    CC="clang"
+elif [[ "${KERNEL_NAME}" == "FreeBSD"* ]]; then
+    CC="clang"
+fi
+if [ ${CC} = "clang" ]; then
+    CXX="clang++"
+    CC_VER="5.0.0"
+fi
+
 INSTALL_CC=0
+${CC} --help > /dev/null 2>&1
+if [ ${?} -ne 0 ]; then
+    INSTALL_CC=1
+elif [ ${CC} = "clang" ]; then
+    CLANG_MAJOR_VERSION=$(clang -dumpversion | cut -d"." -f1)
+    if [ ${CLANG_MAJOR_VERSION} -lt 5 ]; then
+        INSTALL_CC=1
+    fi
+else
+    GCC_MAJOR_VERSION=$(gcc -dumpversion | cut -d"." -f1)
+    if [ ${GCC_MAJOR_VERSION} -lt 8 ]; then
+        INSTALL_CC=1
+    elif [ ${GCC_MAJOR_VERSION} -eq 8 ]; then
+        GCC_MINOR_VERSION=$(gcc -dumpfullversion | cut -d"." -f2)
+        if [ ${GCC_MINOR_VERSION} -eq 0 ]; then
+            INSTALL_CC=1
+        fi
+    fi
+fi
+
+${CXX} --help > /dev/null 2>&1
+if [ ${?} -ne 0 ]; then
+    INSTALL_CC=1
+fi
+
+as --help > /dev/null 2>&1
+if [ ${?} -ne 0 ]; then
+    INSTALL_CC=1
+fi
 
 PKG_M4=""
 MSG_M4=""
@@ -36,63 +78,37 @@ fi
 
 # Check for MacOS first, as it supports only bash <= 3.2
 if [[ "${KERNEL_NAME}" == "Darwin"* ]]; then
-    clang --help > /dev/null 2>&1
-    if [ ${?} -ne 0 ]; then
-        INSTALL_CC=1
-    else
-        CLANG_MAJOR_VERSION=$(clang -dumpversion | cut -d"." -f1)
-        if [ ${CLANG_MAJOR_VERSION} -lt 5 ]; then
-            INSTALL_CC=1
-        fi
-    fi
-
-    clang++ --help > /dev/null 2>&1
-    if [ ${?} -ne 0 ]; then
-        INSTALL_CC=1
-    fi
-
     if [ ${INSTALL_CC} -ne 0 ]; then
-        echo -e "\033[1;34mwarning:\033[0m install ${MSG_M4}\033[1m‘clang’\033[0m >= 5.0.0 before building"
+        echo -e "\033[1;34mwarning:\033[0m install ${MSG_M4}\033[1m‘${CC}’\033[0m >= ${CC_VER} before building"
     fi
 
     echo -e "configuration was successful, build with \033[1m‘./make.sh’\033[0m"
     exit 0
 fi
 
-as --help > /dev/null 2>&1
-if [ ${?} -ne 0 ]; then
-    INSTALL_CC=1
-fi
-
-ld --help > /dev/null 2>&1
-if [ ${?} -ne 0 ]; then
-    INSTALL_CC=1
-fi
-
-gcc --help > /dev/null 2>&1
-if [ ${?} -ne 0 ]; then
-    INSTALL_CC=1
-else
-    GCC_MAJOR_VERSION=$(gcc -dumpversion | cut -d"." -f1)
-    if [ ${GCC_MAJOR_VERSION} -lt 8 ]; then
+if [[ "${KERNEL_NAME}" != "FreeBSD"* ]]; then
+    ld --help > /dev/null 2>&1
+    if [ ${?} -ne 0 ]; then
         INSTALL_CC=1
-    elif [ ${GCC_MAJOR_VERSION} -eq 8 ]; then
-        GCC_MINOR_VERSION=$(gcc -dumpfullversion | cut -d"." -f2)
-        if [ ${GCC_MINOR_VERSION} -eq 0 ]; then
-            INSTALL_CC=1
-        fi
     fi
 fi
 
 INSTALL_Y="n"
 if [ ${INSTALL_CC} -ne 0 ]; then
-    echo -e -n "install missing dependencies \033[1m‘binutils’\033[0m, ${MSG_M4}\033[1m‘gcc’\033[0m >= 8.1.0? [y/n]: "
+    echo -e -n "install missing dependencies \033[1m‘binutils’\033[0m, ${MSG_M4}\033[1m‘${CC}’\033[0m >= ${CC_VER}? [y/n]: "
     read -p "" INSTALL_Y
 fi
 
 if [ "${INSTALL_Y}" = "y" ]; then
-    DISTRO="$(cat /etc/os-release | grep -P "^NAME=" | cut -d"\"" -f2)"
+    DISTRO="FreeBSD"
+    if [[ "${KERNEL_NAME}" != "FreeBSD"* ]]; then
+        DISTRO="$(cat /etc/os-release | grep -P "^NAME=" | cut -d"\"" -f2)"
+    fi
     case "${DISTRO}" in
+        "FreeBSD")
+            sudo pkg update && sudo pkg install -y binutils clang ${PKG_M4}
+            INSTALL_CC=${?}
+            ;;
         "Debian GNU/Linux") ;&
         "Linux Mint") ;&
         "Ubuntu")
@@ -131,9 +147,9 @@ fi
 
 if [ ${INSTALL_CC} -ne 0 ]; then
     if [ "${INSTALL_Y}" = "y" ]; then
-        echo -e "\033[1;34mwarning:\033[0m failed to install \033[1m‘binutils’\033[0m, ${MSG_M4}\033[1m‘gcc’\033[0m"
+        echo -e "\033[1;34mwarning:\033[0m failed to install \033[1m‘binutils’\033[0m, ${MSG_M4}\033[1m‘${CC}’\033[0m"
     fi
-    echo -e "\033[1;34mwarning:\033[0m install \033[1m‘binutils’\033[0m, ${MSG_M4}\033[1m‘gcc’\033[0m >= 8.1.0 before building"
+    echo -e "\033[1;34mwarning:\033[0m install \033[1m‘binutils’\033[0m, ${MSG_M4}\033[1m‘${CC}’\033[0m >= ${CC_VER} before building"
 fi
 
 echo -e "configuration was successful, build with \033[1m‘./make.sh’\033[0m"
