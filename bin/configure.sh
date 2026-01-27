@@ -20,15 +20,12 @@ fi
 
 CC="gcc"
 CXX="g++"
-CC_VER="8.1.0"
 if [[ "${KERNEL_NAME}" == "Darwin"* ]]; then
     CC="clang"
+    CXX="clang++"
 elif [[ "${KERNEL_NAME}" == "FreeBSD"* ]]; then
     CC="clang"
-fi
-if [ "${CC}" = "clang" ]; then
     CXX="clang++"
-    CC_VER="5.0.0"
 fi
 
 INSTALL_CC=0
@@ -79,14 +76,17 @@ fi
 # Check for MacOS first, as it supports only bash <= 3.2
 if [[ "${KERNEL_NAME}" == "Darwin"* ]]; then
     if [ ${INSTALL_CC} -ne 0 ]; then
-        echo -e "\033[1;34mwarning:\033[0m install ${MSG_M4}\033[1m‘${CC}’\033[0m >= ${CC_VER} before building"
+        echo -e "\033[1;34mwarning:\033[0m install ${MSG_M4}\033[1m‘clang’\033[0m >= 5.0.0 before building"
     fi
 
     echo -e "configuration was successful, build with \033[1m‘./make.sh’\033[0m"
     exit 0
 fi
 
-if [[ "${KERNEL_NAME}" != "FreeBSD"* ]]; then
+CC_VER="8.1.0"
+if [[ "${KERNEL_NAME}" == "FreeBSD"* ]]; then
+    CC_VER="5.0.0"
+else
     ld --help > /dev/null 2>&1
     if [ ${?} -ne 0 ]; then
         INSTALL_CC=1
