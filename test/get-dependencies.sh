@@ -71,7 +71,7 @@ if [ "${INSTALL_Y}" = "y" ]; then
     case "${DISTRO}" in
         "FreeBSD")
             sudo pkg update && {
-                for i in $(seq 1 ${#INSTALL_PKGS[@]}); do
+                for i in $(seq 2 ${#INSTALL_PKGS[@]}); do
                     if [ ${INSTALL_PKGS[$((i-1))]} -ne 0 ]; then
                         DEP="$(echo "${INSTALL_DEPS}" | cut -d" " -f${i})"
                         sudo pkg install -y ${DEP}
