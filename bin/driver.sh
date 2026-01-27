@@ -5,15 +5,14 @@ PACKAGE_DIR="$(dirname $(readlink -f ${0}))"
 PACKAGE_NAME="$(cat ${PACKAGE_DIR}/pkgname.cfg)"
 CC="gcc"
 AS_FLAGS="--64"
-LD_LIB_64="/lib64/ld-linux-x86-64.so.2"
+LD_LIB_64=""
 if [[ "${KERNEL_NAME}" == "Darwin"* ]]; then
     CC="clang -arch x86_64"
     AS_FLAGS="-arch x86_64"
-    LD_LIB_64=""
 elif [[ "${KERNEL_NAME}" == "FreeBSD"* ]]; then
     CC="clang"
-    LD_LIB_64="/libexec/ld-elf.so.1"
-    KERNEL_NAME="FreeBSD"
+else
+    LD_LIB_64="/lib64/ld-linux-x86-64.so.2"
 fi
 LIBC_DIR="${PACKAGE_DIR}/libc/"
 PP="${CC}"
@@ -567,13 +566,8 @@ function link () {
                     LD_LIB_64=""
                 fi
                 if [ ! -z "${LD_LIB_64}" ]; then
-                    CRT_FILES="${PACKAGE_DIR}/crt.${EXT_OUT}"
-                    if [ "${KERNEL_NAME}" = "FreeBSD" ]; then
-                        CRT_FILES="${CRT_FILES} ${PACKAGE_DIR}/crtfbsd.${EXT_OUT}"
-                        LD_LIB_64="${LD_LIB_64} -L/lib/ -L/usr/lib/"
-                    fi
                     verbose "Assemble (as) -> ${PACKAGE_DIR}/crt.o"
-                    as ${AS_FLAGS} ${CRT_FILES} -o ${PACKAGE_DIR}/crt.o
+                    as ${AS_FLAGS} ${PACKAGE_DIR}/crt.${EXT_OUT} -o ${PACKAGE_DIR}/crt.o
                     if [ ${?} -ne 0 ]; then
                         raise_error "assembling failed"
                     fi
