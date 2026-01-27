@@ -1,14 +1,15 @@
 #!/usr/bin/env bash
 
+KERNEL_NAME="$(uname -s)"
 PACKAGE_TEST="$(dirname $(readlink -f ${0}))"
 cd $(dirname ${PACKAGE_TEST})/build/
 
 CC="gcc"
 CXX="g++"
-if [[ "$(uname -s)" == "Darwin"* ]]; then
+if [[ "${KERNEL_NAME}" == "Darwin"* ]]; then
     CC="clang"
     CXX="clang++"
-elif [[ "$(uname -s)" == "FreeBSD"* ]]; then
+elif [[ "${KERNEL_NAME}" == "FreeBSD"* ]]; then
     CC="clang"
     CXX="clang++"
 fi

@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 
+KERNEL_NAME="$(uname -s)"
+
 # Check for MacOS first, as it supports only bash <= 3.2
-if [[ "$(uname -s)" == "Darwin"* ]]; then
+if [[ "${KERNEL_NAME}" == "Darwin"* ]]; then
     cmake --help > /dev/null 2>&1
     if [ ${?} -ne 0 ]; then
         echo -e -n "install missing dependencies \033[1m‘cmake’\033[0m? [y/n]: "

@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+KERNEL_NAME="$(uname -s)"
 PACKAGE_TEST="$(dirname $(readlink -f ${0}))"
 PACKAGE_DIR="$(dirname ${PACKAGE_TEST})/bin"
 PACKAGE_NAME="$(cat ${PACKAGE_DIR}/pkgname.cfg)"
@@ -21,7 +22,7 @@ if [ -f "${PACKAGE_DIR}/pkgpath.cfg" ]; then
     TEST_DIR="$(cat ${PACKAGE_DIR}/pkgpath.cfg)/test/tests/compiler"
 fi
 
-if [[ "$(uname -s)" == "Darwin"* ]]; then
+if [[ "${KERNEL_NAME}" == "Darwin"* ]]; then
     echo "${0} not supported on MacOS (missing valgrind)"
     exit 0
 fi
@@ -116,7 +117,7 @@ function test_all () {
 }
 
 DISTRO="FreeBSD"
-if [[ "$(uname -s)" != "FreeBSD"* ]]; then
+if [[ "${KERNEL_NAME}" != "FreeBSD"* ]]; then
     DISTRO="$(cat /etc/os-release | grep -P "^NAME=" | cut -d"\"" -f2)"
 fi
 case ${DISTRO} in

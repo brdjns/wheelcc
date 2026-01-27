@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+KERNEL_NAME="$(uname -s)"
 PACKAGE_TEST="$(dirname $(dirname $(readlink -f ${0})))"
 PACKAGE_DIR="$(dirname ${PACKAGE_TEST})/bin"
 PACKAGE_NAME="$(cat ${PACKAGE_DIR}/pkgname.cfg)"
@@ -37,9 +38,9 @@ elif [ "${1}" = "--line" ]; then
     ARG=${2}
 fi
 
-if [[ "$(uname -s)" == "Darwin"* ]]; then
+if [[ "${KERNEL_NAME}" == "Darwin"* ]]; then
     MATCH_PATTERN=""
-elif [[ "$(uname -s)" == "FreeBSD"* ]]; then
+elif [[ "${KERNEL_NAME}" == "FreeBSD"* ]]; then
     MATCH_PATTERN=""
 fi
 

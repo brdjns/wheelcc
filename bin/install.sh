@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+KERNEL_NAME="$(uname -s)"
 PACKAGE_DIR="$(dirname $(readlink -f ${0}))"
 PACKAGE_NAME="$(cat ${PACKAGE_DIR}/pkgname.cfg)"
 
@@ -37,9 +38,9 @@ if [ -d "${PACKAGE_DIR}/libc/" ]; then
                 RC_FILE="zshrc"
             elif [ -f "~/.cshrc" ]; then
                 RC_FILE="cshrc"
-            elif [[ "$(uname -s)" == "Darwin"* ]]; then
+            elif [[ "${KERNEL_NAME}" == "Darwin"* ]]; then
                 RC_FILE="zshrc"
-            elif [[ "$(uname -s)" == "FreeBSD"* ]]; then
+            elif [[ "${KERNEL_NAME}" == "FreeBSD"* ]]; then
                 RC_FILE="cshrc"
             fi
         fi
