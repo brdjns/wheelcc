@@ -23,10 +23,15 @@ if [[ "${KERNEL_NAME}" == "Darwin"* ]]; then
     exit 0
 fi
 
-INSTALL_PKGS=(0 0 0 0)
-INSTALL_DEPS="make cmake diffutils valgrind"
+PKG_MAKE="make"
+if [[ "${KERNEL_NAME}" == "FreeBSD"* ]]; then
+    PKG_MAKE="clang"
+fi
 
-make --help > /dev/null 2>&1
+INSTALL_PKGS=(0 0 0 0)
+INSTALL_DEPS="${PKG_MAKE} cmake diffutils valgrind"
+
+${PKG_MAKE} --help > /dev/null 2>&1
 if [ ${?} -ne 0 ]; then
     INSTALL_PKGS[0]=1
 fi
@@ -95,15 +100,14 @@ if [ "${INSTALL_Y}" = "y" ]; then
             ;;
         "openSUSE Leap") ;&
         "Rocky Linux")
-            sudo dnf check-update && {
-                for i in $(seq 1 ${#INSTALL_PKGS[@]}); do
-                    if [ ${INSTALL_PKGS[$((i-1))]} -ne 0 ]; then
-                        DEP="$(echo "${INSTALL_DEPS}" | cut -d" " -f${i})"
-                        sudo dnf -y install ${DEP}.x86_64
-                        INSTALL_PKGS[$((i-1))]=${?}
-                    fi
-                done
-            }
+            sudo dnf check-update
+            for i in $(seq 1 ${#INSTALL_PKGS[@]}); do
+                if [ ${INSTALL_PKGS[$((i-1))]} -ne 0 ]; then
+                    DEP="$(echo "${INSTALL_DEPS}" | cut -d" " -f${i})"
+                    sudo dnf -y install ${DEP}.x86_64
+                    INSTALL_PKGS[$((i-1))]=${?}
+                fi
+            done
             ;;
         "Arch Linux") ;&
         "EndeavourOS")
