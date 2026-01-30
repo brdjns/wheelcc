@@ -54,6 +54,16 @@ if [ ${?} -ne 0 ]; then
     INSTALL_CC=1
 fi
 
+CC_VER="8.1.0"
+INSTALL_BASE=0
+if [ "${CC}" = "clang" ]; then
+    CC_VER="5.0.0"
+    if [ ${INSTALL_CC} -ne 0 ]; then
+        INSTALL_BASE=1
+        INSTALL_CC=0
+    fi
+fi
+
 as --help > /dev/null 2>&1
 if [ ${?} -ne 0 ]; then
     INSTALL_CC=1
@@ -64,7 +74,7 @@ MSG_M4=""
 if [ -f "${PACKAGE_DIR}/fileext.cfg" ]; then
     EXT_IN="$(cat ${PACKAGE_DIR}/fileext.cfg)"
     if [[ "${EXT_IN}" != "c"* ]]; then
-        m4 --help > /dev/null 2>&1
+        m4 <(echo "") > /dev/null 2>&1
         if [ ${?} -ne 0 ]; then
             INSTALL_CC=1
             PKG_M4="m4"
@@ -75,6 +85,9 @@ fi
 
 # Check for MacOS first, as it supports only bash <= 3.2
 if [[ "${KERNEL_NAME}" == "Darwin"* ]]; then
+    if [ ${INSTALL_BASE} -ne 0 ]; then
+        INSTALL_CC=1
+    fi
     if [ ${INSTALL_CC} -ne 0 ]; then
         echo -e "\033[1;34mwarning:\033[0m install ${MSG_M4}\033[1m‘clang’\033[0m >= 5.0.0 before building"
     fi
@@ -83,14 +96,9 @@ if [[ "${KERNEL_NAME}" == "Darwin"* ]]; then
     exit 0
 fi
 
-CC_VER="8.1.0"
-if [[ "${KERNEL_NAME}" == "FreeBSD"* ]]; then
-    CC_VER="5.0.0"
-else
-    ld --help > /dev/null 2>&1
-    if [ ${?} -ne 0 ]; then
-        INSTALL_CC=1
-    fi
+ld --help > /dev/null 2>&1
+if [ ${?} -ne 0 ]; then
+    INSTALL_CC=1
 fi
 
 INSTALL_Y="n"
@@ -106,7 +114,7 @@ if [ "${INSTALL_Y}" = "y" ]; then
     fi
     case "${DISTRO}" in
         "FreeBSD")
-            sudo pkg update && sudo pkg install -y binutils clang ${PKG_M4}
+            sudo pkg update && sudo pkg install -y binutils ${PKG_M4}
             INSTALL_CC=${?}
             ;;
         "Debian GNU/Linux") ;&
@@ -117,7 +125,8 @@ if [ "${INSTALL_Y}" = "y" ]; then
             ;;
         "openSUSE Leap") ;&
         "Rocky Linux")
-            sudo dnf check-update && sudo dnf -y install binutils.x86_64 gcc.x86_64 gcc-c++.x86_64 ${PKG_M4//m4/m4.x86_64}
+            sudo dnf check-update
+            sudo dnf -y install binutils.x86_64 gcc.x86_64 gcc-c++.x86_64 ${PKG_M4//m4/m4.x86_64}
             INSTALL_CC=${?}
             ;;
         "Arch Linux") ;&
@@ -145,6 +154,9 @@ if [ "${INSTALL_Y}" = "y" ]; then
     esac
 fi
 
+if [ ${INSTALL_BASE} -ne 0 ]; then
+    INSTALL_CC=1
+fi
 if [ ${INSTALL_CC} -ne 0 ]; then
     if [ "${INSTALL_Y}" = "y" ]; then
         echo -e "\033[1;34mwarning:\033[0m failed to install \033[1m‘binutils’\033[0m, ${MSG_M4}\033[1m‘${CC}’\033[0m"

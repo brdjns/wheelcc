@@ -33,19 +33,29 @@ echo -e "created symlink \033[1;36m${INSTALL_DIR}/${PACKAGE_NAME}\033[0m -> \033
 if [ -d "${PACKAGE_DIR}/libc/" ]; then
     if [ ! -z "$(ls ${PACKAGE_DIR}/libc/)" ]; then
         RC_FILE="bashrc"
-        if [ ! -f "~/.bashrc" ]; then
-            if [ -f "~/.zshrc" ]; then
+        if [[ "${KERNEL_NAME}" == "Darwin"* ]]; then
+            RC_FILE="zshrc"
+        elif [[ "${KERNEL_NAME}" == "FreeBSD"* ]]; then
+            RC_FILE="shrc"
+        fi
+        if [ ! -f "${HOME}/.${RC_FILE}" ]; then
+            if [ -f "${HOME}/.bashrc" ]; then
+                RC_FILE="bashrc"
+            elif [ -f "${HOME}/.zshrc" ]; then
                 RC_FILE="zshrc"
-            elif [ -f "~/.cshrc" ]; then
+            elif [ -f "${HOME}/.shrc" ]; then
+                RC_FILE="shrc"
+            elif [ -f "${HOME}/.tcshrc" ]; then
+                RC_FILE="tcshrc"
+            elif [ -f "${HOME}/.cshrc" ]; then
                 RC_FILE="cshrc"
-            elif [[ "${KERNEL_NAME}" == "Darwin"* ]]; then
-                RC_FILE="zshrc"
-            elif [[ "${KERNEL_NAME}" == "FreeBSD"* ]]; then
-                RC_FILE="cshrc"
+            elif [ -f "${HOME}/.kshrc" ]; then
+                RC_FILE="kshrc"
             fi
         fi
-        if [ "${RC_FILE}" = "cshrc" ]; then
-            sudo echo 'setenv LD_LIBRARY_PATH "${LD_LIBRARY_PATH}:'"${PACKAGE_DIR}/libc/\"" >> ~/.cshrc
+        if [[ "${RC_FILE}" == *"cshrc" ]]; then
+            sudo echo 'if ( ! ${?LD_LIBRARY_PATH} ) then; setenv LD_LIBRARY_PATH; endif' >> ~/.${RC_FILE}
+            sudo echo 'setenv LD_LIBRARY_PATH "${LD_LIBRARY_PATH}:'"${PACKAGE_DIR}/libc/\"" >> ~/.${RC_FILE}
         else
             sudo echo 'export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:'"${PACKAGE_DIR}/libc/\"" >> ~/.${RC_FILE}
         fi
