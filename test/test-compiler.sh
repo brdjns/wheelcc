@@ -145,7 +145,7 @@ function check_pass () {
     rm ${TEST_DIR}/${FILE}
 
     if [ ${RETURN_GCC} -eq ${RETURN_THIS} ]; then
-        if [[ "${STDOUT_GCC}" == "${STDOUT_THIS}" ]]; then
+        if [ "${STDOUT_GCC}" = "${STDOUT_THIS}" ]; then
             RESULT="${LIGHT_GREEN}[y]"
             if [ ${1} -eq 0 ]; then
                 let PASS+=1
@@ -299,7 +299,7 @@ function check_test () {
     fi
 
     # gcc outputs only a warning here
-    if [[ "${FILE}" == "${TEST_SRCS[16]}/invalid_types/void/void_fun_params" ]]; then
+    if [ "${FILE}" = "${TEST_SRCS[16]}/invalid_types/void/void_fun_params" ]; then
         check_fail 0
         return
     fi

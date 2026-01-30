@@ -65,7 +65,7 @@ function check_success () {
         rm ${FILE}
 
         if [ ${RETURN} -eq ${CHECK_VAL} ]; then
-            if [[ "${STDOUT}" == "${CHECK_STR}" ]]; then
+            if [ "${STDOUT}" = "${CHECK_STR}" ]; then
                 RESULT="${LIGHT_GREEN}[y]"
                 let PASS+=1
             else
