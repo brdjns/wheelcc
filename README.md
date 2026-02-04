@@ -13,27 +13,27 @@
 
 *__<ins>Reinventing the wheel</ins>__ (idiom): "Waste a great deal of time or effort in creating something that already exists."*
 <!---->
-A small, self-contained C compiler written from scratch in C for x86-64 GNU/Linux and MacOS.
+A small, self-contained C compiler written from scratch in C for x86-64 GNU/Linux, MacOS and FreeBSD.
 
 ## &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; The [planet](https://github.com/romainducrocq/planet) language uses wheelcc as its backend!
 
 ****
 
-The wheelcc C compiler supports a large subset of C17 (International Standard ISO/IEC 9899:2018), for which it has its own built-in preprocessor, frontend, IR, optimization and backend. It emits x86-64 AT&T assembly for GNU/Linux and MacOS, which is then assembled with as and linked with ld. wheelcc is written in C, depends only on Glibc, POSIX and bash, and builds to a standalone executable + a driver. It also builds in C++.
+The wheelcc C compiler supports a large subset of C17 (International Standard ISO/IEC 9899:2018), for which it has its own built-in preprocessor, frontend, IR, optimization and backend. It emits x86-64 AT&T assembly for GNU/Linux, MacOS and FreeBSD, which is then assembled with as and linked with ld. wheelcc is written in C, depends only on Glibc, POSIX and bash, and builds to a standalone executable + a driver. It also builds in C++.
 
-## Usage
+### Supported platforms
 
-### Distros
-
-The tip of `master` branch has passed all tests and validation for these GNU/Linux distributions (x86-64):  
-Debian GNU/Linux 12|Linux Mint 22.1|Ubuntu 24.04.3 LTS|openSUSE Leap 15.6|Rocky Linux 10.0|Arch Linux|EndeavourOS Linux|
+The latest release (tagged version `0.3.0`) was tested successfully for these x86-64 GNU/Linux distributions:  
+Debian GNU/Linux 12|Linux Mint 22.1|Ubuntu 24.04.3 LTS|openSUSE Leap 15.6|Rocky Linux 10.1|Arch Linux|EndeavourOS|
 :---:|:---:|:---:|:---:|:---:|:---:|:---:|
 :heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|:heavy_check_mark:|
 
-and MacOS:  
-Apple M3 macOS 15.2 24C101 arm64|
-:---:|
-:heavy_check_mark:|
+as well as aarch64 MacOS with x86-64 emulation and x86-64 FreeBSD:  
+Apple M3 macOS 15.2 24C101 arm64|FreeBSD 15.0-RELEASE-p1|
+:---:|:---:|
+:heavy_check_mark:|:heavy_check_mark:|
+
+## Usage
 
 ### Install
 
@@ -45,18 +45,19 @@ $ cd wheelcc/bin/
 - Configure the project and install the build+runtime dependencies
     > - GNU/Linux: `binutils`, `gcc` >= 8.1.0
     > - MacOS: `clang` >= 5.0.0
+    > - FreeBSD: `bash`, `binutils`, `clang` >= 5.0.0 (install bash with `$ sudo pkg install bash`)
 ```
 $ ./configure.sh
 ```
 - Build the compiler in Release mode  
     > - GNU/Linux: requires `$ gcc -dumpfullversion` >= 8.1.0
-    > - MacOS: requires `$ clang -dumpversion` >= 5.0.0
-    > - By default in C from command line, optionally with Cmake and C++
+    > - MacOS and FreeBSD: requires `$ clang -dumpversion` >= 5.0.0
+    > - Built by default in C from command line, or optionally with CMake and C++
 ```
 $ ./make.sh [--cmake | --cmake-cpp]
 ```
-- Install the `wheelcc` command system-wide (creates a symlink to the driver in `/usr/local/bin/`)  
-    > or, do not install system-wide and use `bin/driver.sh` directly instead  
+- Install the `wheelcc` command system-wide (this creates a symlink to the driver in `/usr/local/bin/`)  
+    > or do not install system-wide and use the driver directly instead at `bin/driver.sh`
 ```
 $ ./install.sh
 ```
@@ -168,8 +169,8 @@ wheelcc: error: compilation failed, see ‘--help’
 
 ### Test
 
-- cd to the test directory, get the testtime dependencies
-    > - GNU/Linux: `make cmake diffutils valgrind`
+- cd to the test directory, get the dependencies for testing
+    > - GNU/Linux and FreeBSD: `make cmake diffutils valgrind`
     > - MacOS: `cmake` (optional)
 ```
 $ cd test/
@@ -178,7 +179,7 @@ $ ./get-dependencies.sh # Optional on MacOS
 
 - Test the compiler  
     > - GNU/Linux: requires `$ gcc -dumpfullversion` >= 8.1.0
-    > - MacOS: requires `$ clang -dumpversion` >= 5.0.0
+    > - MacOS and FreeBSD: requires `$ clang -dumpversion` >= 5.0.0
 ```
 $ ./test-compiler.sh [-O0 | -O1 | -O2 | -O3]
 ```
@@ -195,7 +196,7 @@ $ ./test-errors.sh
 
 - Test memory leaks  (not supported on MacOS)
 ```
-$ ./test-memory.sh [-O0 | -O1 | -O2 | -O3] # GNU/Linux only
+$ ./test-memory.sh [-O0 | -O1 | -O2 | -O3] # GNU/Linux and FreeBSD only
 ```
 
 - Run all tests  
@@ -216,13 +217,13 @@ The preprocessor does not natively support macros, but macro expansion can be en
 
 > **TL;DR** Compiles C source files to x86-64 AT&T assembly, then outputs a native executable.
 
-wheelcc compiles a list of C source files to x86-64 AT&T GNU/Linux or MacOS assembly (see [_Implementation Reference_](https://github.com/romainducrocq/wheelcc/tree/master?tab=readme-ov-file#implementation-reference) section for a list of supported C language features).
+wheelcc compiles a list of C source files to x86-64 AT&T GNU/Linux, MacOS or FreeBSD assembly (see [_Implementation Reference_](https://github.com/romainducrocq/wheelcc/tree/master?tab=readme-ov-file#implementation-reference) section for a list of supported C language features).
 The `-S` command-line option can be used to output the assembly without linking, and the `-c` option to create an object file instead of an executable. Otherwise, it creates an executable located next to the first source file with the same name without extension, or with the name set with the `-o` command-line option.  
 wheelcc also has comprehensive compile error handling, and outputs error messages with the file, line, position and explanation for the compile error to stderr.
 
 ### Optimization
 
-> **TL;DR** Multiple IR and backend optimizations can be enabled at compiletime. 
+> **TL;DR** Multiple IR and backend optimizations can be enabled at compile time.
 
 wheelcc can perform multiple compiler performance optimizations for smaller and faster assembly outputs. The level 1 `-O1` command-line option enables all IR optimizations: constant folding, unreachable code elimination, copy propagation and dead store elimination. The level 2 `-O2` command-line option enables backend register allocation with coalescing (but it does not enable level 1 optimizations). The `-O3` option enables all optimizations (level 1 and 2) and the `-O0` option disables them all. By default, only `-O2` is enabled (`-O1` is disabled).
 
@@ -236,13 +237,13 @@ There is no built-in linker, the compiler outputs assembly that is then assemble
 
 > **TL;DR** No dependencies are required other than the system tools already installed.
 
-wheelcc aims to be small and self-contained. It only depends on the C standard library and 3 source-only dependencies (patched and included): [sds](https://github.com/antirez/sds), [stb_ds](https://github.com/nothings/stb/blob/master/stb_ds.h) and [tinydir](https://github.com/cxong/tinydir). The build+runtime only requires Glibc, POSIX, bash, binutils and gcc (>= 8.1.0) on GNU/Linux, or clang (>= 5.0.0) on MacOS, which makes the compiler easy to build and use on any x86-64 GNU/Linux distribution or MacOS.
+wheelcc aims to be small and self-contained. It only depends on the C standard library and 3 source-only dependencies that are patched and included: [sds](https://github.com/antirez/sds), [stb_ds](https://github.com/nothings/stb/blob/master/stb_ds.h) and [tinydir](https://github.com/cxong/tinydir). The build+runtime only requires Glibc, POSIX, bash, binutils and gcc (>= 8.1.0) on GNU/Linux, or clang (>= 5.0.0) on MacOS and FreeBSD, which makes the compiler easy to build and use on most x86-64 GNU/Linux distributions, MacOS or FreeBSD.
 
 ### Limitations
 
 > **TL;DR** This is a work in progress, it is not intended to be used as a production compiler.
 
-The compiler supports a large subset of the C17 language, but many features of the language are still not implemented. Some of these are: enum data structures, variable-length arrays, const types, typedefs, function pointers, non-ascii characters, and float, short, auto, volatile, inline, register and restrict keywords. Any of these may or may not be implemented in the future. As such, wheelcc can not compile the C standard library and is not intended to be used as a production C compiler.
+The compiler supports a large subset of the C17 language, but some features of the language are still not implemented. Among these are: enum data structures, variable-length arrays, const types, typedefs, function pointers, non-ascii characters, and float, short, auto, volatile, inline, register and restrict keywords. Any of these may or may not be implemented in the future. As such, wheelcc can not compile the C standard library and is not intended to be used as a production C compiler.
 
 ## Implementation reference
 
